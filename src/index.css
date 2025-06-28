@@ -182,6 +182,16 @@ section {
     width: 100%;
 }
 
+h2,h1 {
+  text-align: center;
+  margin: 0 auto;
+  max-width: 90%; 
+  word-wrap: break-word; 
+  white-space: normal;   
+  font-size: 1.8rem;     
+  line-height: 1.4;    
+}
+
 .challenge-btns button {
     display: grid;
     place-items: center;
@@ -225,7 +235,6 @@ section {
 .incorrect {
     background: oklch(.656 .241 354.308) !important;
 }
-/* PORTAL */
 
 /* FOOTER */
 

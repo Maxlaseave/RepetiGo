@@ -1,29 +1,28 @@
-import Welcome from "./components/layouts/Welcome"
 import Layout from "./components/layouts/Layout"
-import Dashboard from "./components/layouts/Dashboard"
-import Challenge from "./components/layouts/Challenge"
+import Welcome from "./components/layouts/Welcome"
+import Dashboard from './components/layouts/Dashboard'
+import Challenge from './components/layouts/Challenge'
 import { useState, useEffect } from "react"
 
 import WORDS from './utils/French.json'
 
-import { getWordByIndex, PLAN } from './utils'
-
+import { countdownIn24Hours, getWordByIndex, PLAN } from './utils'
 
 function App() {
-  
   const [selectedPage, setSelectedPage] = useState(0)
+  // const selectedPage = 2 // zero is for welcome, 1 is for dashboard, 2 is for challenge
   const [name, setName] = useState('')
-  const [day, setDay] = useState('1')
+  const [day, setDay] = useState(1)
   const [datetime, setDatetime] = useState(null)
-  const [history, setHistory] = useState([])
+  const [history, setHistory] = useState({})
   const [attempts, setAttempts] = useState(0)
 
-  
+
   const daysWords = PLAN[day].map((idx) => {
     return getWordByIndex(WORDS, idx).word
   })
 
-  // console.log(dayWords)
+  console.log(daysWords)
 
   function handleChangePage(pageIndex) {
     setSelectedPage(pageIndex)
@@ -33,7 +32,6 @@ function App() {
     if (!name) { return }
     localStorage.setItem('username', name)
     handleChangePage(1)
-
   }
 
   function handleCompleteDay() {
@@ -49,7 +47,7 @@ function App() {
     setSelectedPage(1)
   }
 
-    function handleIncrementAttempts() {
+  function handleIncrementAttempts() {
     // take the current attempt number, and add one and save it to local storage
     const newRecord = attempts + 1
     localStorage.setItem('attempts', newRecord)
@@ -114,9 +112,7 @@ function App() {
   return (
     <Layout>
       {pages[selectedPage]}
-
     </Layout>
-
   )
 }
 

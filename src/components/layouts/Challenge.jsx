@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import ProgressBar from "../ProgressBar"
 import { isEncountered, shuffle } from "../../utils"
 import DEFINITIONS from '../../utils/French.json'
@@ -8,7 +8,11 @@ export default function Challenge(props) {
 
     const [wordIndex, setWordIndex] = useState(0)
     const [inputVal, setInputVal] = useState('')
-    const [showDefintion, setShowDefinition] = useState(false)
+    const [showDefinition, setShowDefinition] = useState(false)
+    const [mode, setMode] = useState('toDefinition')
+
+    const introLength = daysWords.length
+
     const [listToLearn, setListToLearn] = useState([
         ...daysWords,
         ...shuffle(daysWords),
@@ -17,71 +21,107 @@ export default function Challenge(props) {
     ])
 
     const word = listToLearn[wordIndex]
-    const isNewWord = showDefintion || (!isEncountered(day, word) && wordIndex < daysWords.length)
-    const defintion = DEFINITIONS[word]
+    const definition = DEFINITIONS[word]
+
+    const isIntroPhase = wordIndex < introLength
+    const isNewWord = showDefinition || (!isEncountered(day, word) && isIntroPhase)
+
+    // Set challenge mode only during practice phase
+    useEffect(() => {
+        if (!isIntroPhase) {
+            const newMode = Math.random() < 0.5 ? 'toDefinition' : 'toWord'
+            setMode(newMode)
+        }
+    }, [wordIndex])
+
+    // Determine what to show and what to expect as an answer
+    const prompt = isIntroPhase || mode === 'toDefinition' ? word : definition
+    const expectedAnswer = isIntroPhase || mode === 'toDefinition' ? definition : word
+
+    function handleInputChange(e) {
+        const val = e.target.value
+
+        // only check correctness once user reaches expected length
+        if (val.length === expectedAnswer.length && val.length > inputVal.length) {
+            handleIncrementAttempts()
+
+            if (val.toLowerCase() === expectedAnswer.toLowerCase()) {
+                if (wordIndex >= listToLearn.length - 1) {
+                    handleCompleteDay()
+                    return
+                }
+
+                setWordIndex(prev => prev + 1)
+                setShowDefinition(false)
+                setInputVal('')
+                return
+            }
+        }
+
+        setInputVal(val)
+    }
 
     function giveUp() {
-        setListToLearn([...listToLearn, word])
+        setListToLearn(prev => [...prev, word])
         setShowDefinition(true)
     }
 
     return (
         <section id="challenge">
-            <h1>{word}</h1>
-            {isNewWord && (<p>{defintion}</p>)}
+            <h2>{isIntroPhase ? "Learn This Word" : "Challenge Yourself"}</h2>
+
+            <h1>{prompt}</h1>
+
+          
+            {isIntroPhase && <p className="definition">{definition}</p>}
+
+          
+           {showDefinition && !isIntroPhase && (
+                <p className="definition">{expectedAnswer}</p>
+            )}
             <div className="helper">
                 <div>
-                    {/* CONTAINS ALL THE ERROR CORRECTIOB VISUAL BARS */}
-                    {[...Array(defintion.length).keys()]
-                        .map((char, elementIdx) => {
-                            // determine whether or not the user has typed the character they think is correct, and show red or blue depending on whether or not it's acutally correct
-                            const styleToApply = inputVal.length < char + 1 ?
-                                '' :
-                                inputVal.split('')[elementIdx].toLowerCase() == defintion.split('')[elementIdx].toLowerCase() ? 'correct' : 'incorrect'
+                    {[...Array(expectedAnswer.length).keys()].map((char, i) => {
+                        const styleToApply =
+                            inputVal.length <= i
+                                ? ''
+                                : inputVal[i]?.toLowerCase() === expectedAnswer[i]?.toLowerCase()
+                                    ? 'correct'
+                                    : 'incorrect'
 
-                            return (
-                                <div className={' ' + styleToApply} key={elementIdx}></div>
-                            )
-                        })}
+                        return <div className={styleToApply} key={i}></div>
+                    })}
                 </div>
-                <input value={inputVal} onChange={(e) => {
-                    // if a user has entered the correct number of characters, we need to do a few things
-                    // 1. if the entry is correct, we needd to increment attempts and move them on to the next word
-                    // 2. if the entry is incorrect we need to increment attempts, and also if they
-                    if (e.target.value.length == defintion.length && e.target.value.length > inputVal.length) {
-                        // compare words
-                        handleIncrementAttempts()
 
-                        if (e.target.value.toLowerCase() == defintion.toLowerCase()) {
-                            // then the user has the correct input
-                            if (wordIndex >= listToLearn.length - 1) {
-                                handleCompleteDay()
-                                return
-                            }
-                            setWordIndex(wordIndex + 1)
-                            setShowDefinition(false)
-                            setInputVal('')
-                            return
-                            // check if finished all the words, then end the day, otherwise go to next word
-                        }
-
+                <input
+                    value={inputVal}
+                    onChange={handleInputChange}
+                    type="text"
+                    placeholder={
+                        isIntroPhase
+                            ? "Type the definition (it's shown above)..."
+                            : mode === 'toDefinition'
+                                ? "Enter the definition..."
+                                : "Enter the French word..."
                     }
-
-                    setInputVal(e.target.value)
-                }} type="text" placeholder="Enter the defintion..." />
+                />
             </div>
 
             <div className="challenge-btns">
-                <button onClick={() => {
-                    handleChangePage(1)
-                }} className="card-button-secondary">
+                <button onClick={() => handleChangePage(1)} className="card-button-secondary">
                     <h6>Quit</h6>
                 </button>
-                <button onClick={giveUp} className="card-button-primary">
-                    <h6>I forgot</h6>
-                </button>
+                {!isIntroPhase && (
+                    <button onClick={giveUp} className="card-button-primary">
+                        <h6>I forgot</h6>
+                    </button>
+                )}
             </div>
-            <ProgressBar remainder={wordIndex * 100 / listToLearn.length} text={`${wordIndex} / ${listToLearn.length}`} />
+
+            <ProgressBar
+                remainder={(wordIndex * 100) / listToLearn.length}
+                text={`${wordIndex} / ${listToLearn.length}`}
+            />
         </section>
     )
 }
