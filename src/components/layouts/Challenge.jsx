@@ -68,9 +68,9 @@ export default function Challenge(props) {
 
     return (
         <section id="challenge">
-            <h2>{isIntroPhase ? "Learn This Word" : "Challenge Yourself"}</h2>
+            <h2 className="phrase">{isIntroPhase ? "Learn This Word" : "Challenge Yourself"}</h2>
 
-            <h1>{prompt}</h1>
+            <h1 className="prompt">{prompt}</h1>
 
           
             {isIntroPhase && <p className="definition">{definition}</p>}
