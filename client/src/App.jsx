@@ -17,7 +17,6 @@ function App() {
   const [history, setHistory] = useState({})
   const [attempts, setAttempts] = useState(0)
 
-
   const daysWords = PLAN[day].map((idx) => {
     return getWordByIndex(WORDS, idx).word
   })
