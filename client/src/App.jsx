@@ -10,7 +10,7 @@ import { countdownIn24Hours, getWordByIndex, PLAN } from './utils'
 
 function App() {
   const [selectedPage, setSelectedPage] = useState(0)
-  // const selectedPage = 2 // zero is for welcome, 1 is for dashboard, 2 is for challenge
+  
   const [name, setName] = useState('')
   const [day, setDay] = useState(1)
   const [datetime, setDatetime] = useState(null)
